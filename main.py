@@ -36,6 +36,7 @@ def run_core(domain, headers, area):
         print("[+]Got domain! \n" + str(iplist))
     return domain, iplist
 
+
 def main():
     headers = init()
     args = initArguments()
