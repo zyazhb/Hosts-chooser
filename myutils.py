@@ -1,6 +1,7 @@
 import requests
 import re
 from ping3 import ping
+import multi
 
 
 def run_core(domain, headers, area):
@@ -26,13 +27,18 @@ def ping_host(ip):
 
 def clean(iplist):
     # TODO
+    ip_dic = multi.multi_ping(iplist)
+    '''
     print("[+]Cleaning...")
     ip_dic = dict()
     for ip in iplist:
         # 创建线程
         ip_dic[ip] = ping_host(ip)
+    '''
+    print(ip_dic)
     ip_dic = sorted(ip_dic.items(), key=lambda kv: (kv[1], kv[0]))
     return(ip_dic)
+
 
 
 def output_dic(domain, ip_dic):
