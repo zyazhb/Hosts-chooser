@@ -16,6 +16,7 @@ def run_core(domain, headers, area):
         print("[+]Got domain! \n" + str(iplist))
     return domain, iplist
 
+
 def clean(iplist):
     print("[+]Start Cleaning...")
     ip_dic = multi.multi_ping(iplist)
