@@ -37,7 +37,6 @@ def main():
         parser.print_help()
 
     if args.clean:
-        #myutils.thread_work(args.thread, myutils.clean, iplist)
         myutils.output_dic(domain, myutils.clean(iplist))
 
 
