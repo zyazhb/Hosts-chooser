@@ -16,28 +16,14 @@ def run_core(domain, headers, area):
         print("[+]Got domain! \n" + str(iplist))
     return domain, iplist
 
-
-def ping_host(ip):
-    response = ping(ip)
-    if response is not None:
-        delay = int(response * 1000)
-        #print("[+]ping "+str(ip))
-        return delay
-
-
 def clean(iplist):
-    # TODO
-    ip_dic = multi.multi_ping(iplist)
     print("[+]Start Cleaning...")
-    # print(ip_dic)
+    ip_dic = multi.multi_ping(iplist)
     ip_dic = sorted(ip_dic.items(), key=lambda kv: (kv[1], kv[0]))
     return(ip_dic)
 
 
 def output_dic(domain, ip_dic):
+    print("[+]Output:")
     for ip, delay in ip_dic:
         print(str(domain) + "    " + str(ip) + "    " + str(delay))
-
-
-def test(wtf):
-    print(wtf)

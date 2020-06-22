@@ -4,6 +4,7 @@
 from threading import Thread
 from ping3 import ping
 ip_dic = dict()
+Lock=0
 
 
 class PING(Thread):
@@ -12,10 +13,11 @@ class PING(Thread):
         self.ip = ip
 
     def run(self):
+        
         response = ping(self.ip)
         if response is not None:
             delay = int(response * 1000)
-            #print("[+]ping "+str(self.ip))
+            print("[+]ping "+str(self.ip))
             ip_dic[self.ip] = delay
 # 多线程同时执行
 
@@ -27,4 +29,5 @@ def multi_ping(iplist):
         T_thread.append(t)
     for i in range(len(T_thread)):
         T_thread[i].start()
-    return ip_dic
+    if Lock==0:
+        return ip_dic
