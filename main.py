@@ -2,6 +2,7 @@
 from fake_useragent import UserAgent
 import argparse
 import myutils
+import requests
 
 
 def init():
@@ -24,22 +25,33 @@ def initArguments():
     args = parser.parse_args()
     return parser, args
 
-
 def main():
-    headers = init()
-    parser, args = initArguments()
-    if args.target:
-        domain, iplist = myutils.run_core(args.target, headers, args.area)
-    elif args.r:
-        for domain in open(args.r):
-            domain, iplist = myutils.run_core(domain, headers, args.area)
-    else:
-        parser.print_help()
+    headers = init()#随机生成useragent
+    parser, args = initArguments()#生成提示信息
 
-    if args.clean:
-        #myutils.thread_work(args.thread, myutils.clean, iplist)
-        myutils.output_dic(domain, myutils.clean(iplist))
+    try:
+        if args.target:
+            domain,iplist = myutils.run_core(args.target, headers, args.area)
+            checkdomain(domain)
+        elif args.r:
+            for domain in open(args.r):
+                domain, iplist = myutils.run_core(domain, headers, args.area)
+        else:
+            raise ValueError
 
+        if args.clean:
+            #myutils.thread_work(args.thread, myutils.clean, iplist)
+            myutils.output_dic(domain, myutils.clean(iplist))
+    except requests.exceptions.MissingSchema:
+        print("The domain was not found")
+    except ValueError:
+        print("pleas enter vaild paras or add -h/--help to view help information")
+
+def checkdomain(domain):
+    url=domain
+    res=requests.get(url)
+    if res.status_code!=200:
+        raise requests.exceptions.MissingSchema
 
 if __name__ == "__main__":
     main()
