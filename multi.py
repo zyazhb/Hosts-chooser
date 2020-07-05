@@ -18,7 +18,7 @@ class PING(Thread):
         response = ping(self.ip)
         if response is not None:
             delay = int(response * 1000)
-            # print("[+]ping "+str(self.ip))
+            #print("[+]ping "+str(self.ip))
             ip_dic[self.ip] = delay
 
 
@@ -42,17 +42,25 @@ class DIG(Thread):
         self.domain = domain
 
     def run(self):
-        response = subprocess.check_output(
-            "dig @{0} {1}".format(self.ip, self.domain), shell=True)
-        if r";; connection timed out; no servers could be reached" not in str(response):
-            iplist.append(self.ip)
+        # response = subprocess.check_output(
+        #     "dig @{0} {1} +short".format(self.ip, self.domain), shell=True)
+
+        proc = subprocess.Popen(
+            "dig @{0} {1} +short".format(self.ip, self.domain), shell=True, stdout=subprocess.PIPE)
+        response = proc.stdout.read()
+        proc.kill()
+        if r";; connection timed out; no servers could be reached" not in str(response) and \
+            response.decode() != '':
+            ans = str(response).split("\\n")[1]
+            if 'github.com.' not in ans:
+                iplist.append(ans)
 
 
 def multi_local_dns(domain):
     with open("dns.txt", "r") as f_dns:
         iplist_unsolve = [x.replace('\n', '') for x in f_dns.readlines()]
 
-        # ???dig
+        # 多线程dig
         T_thread = []
         for i in iplist_unsolve:
             T_thread.append(DIG(i, domain=domain))
@@ -60,5 +68,7 @@ def multi_local_dns(domain):
             T_thread[i].start()
         time.sleep(3)
 
-        print("[+]Got domain! \n" + str(iplist))
-    return domain, iplist
+        # 去重
+        iplist_change = list(set(iplist))
+        print("[+]Got domain! \n" + str(iplist_change))
+    return domain, iplist_change
