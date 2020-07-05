@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
-from fake_useragent import UserAgent
 import argparse
 import myutils
+
 
 def initArguments():
     parser = argparse.ArgumentParser(
