@@ -2,7 +2,6 @@
 import argparse
 import myutils
 
-
 def initArguments():
     parser = argparse.ArgumentParser(
         description="Prevent domains from dns polution.")

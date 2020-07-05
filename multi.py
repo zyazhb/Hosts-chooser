@@ -6,7 +6,6 @@ from ping3 import ping
 import time
 import subprocess
 
-
 ip_dic = dict()
 
 
