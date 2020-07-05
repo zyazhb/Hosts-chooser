@@ -3,13 +3,6 @@ from fake_useragent import UserAgent
 import argparse
 import myutils
 
-
-def init():
-    ua = UserAgent()
-    headers = {"User-Agent": ua.random, }
-    return headers
-
-
 def initArguments():
     parser = argparse.ArgumentParser(
         description="Prevent domains from dns polution.")
@@ -26,13 +19,12 @@ def initArguments():
 
 
 def main():
-    headers = init()
     parser, args = initArguments()
     if args.target:
-        domain, iplist = myutils.run_core(args.target, headers, args.area)
+        domain, iplist = myutils.run_core(args.target, args.area)
     elif args.r:
         for domain in open(args.r):
-            domain, iplist = myutils.run_core(domain, headers, args.area)
+            domain, iplist = myutils.run_core(domain, args.area)
     else:
         parser.print_help()
 
