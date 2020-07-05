@@ -1,7 +1,7 @@
+import multi
+from fake_useragent import UserAgent
 import requests
 import re
-from ping3 import ping
-import multi
 from prettytable import PrettyTable
 
 
@@ -11,8 +11,18 @@ def run_core(domain, area):
         iplist = ['220.181.38.148', '39.156.69.79', '210.23.129.34', '210.23.129.34', '220.181.38.148', '39.156.69.79', '202.108.22.220', '220.181.33.31', '112.80.248.64', '14.215.178.80', '180.76.76.92', '210.23.129.34', '210.23.129.34', '39.156.69.79', '220.181.38.148', '203.12.160.35', '203.12.160.35', '39.156.69.79', '220.181.38.148',
                   '202.108.22.220', '220.181.33.31', '112.80.248.64', '14.215.178.80', '180.76.76.92', '203.12.160.35', '203.12.160.35', '220.181.38.148', '39.156.69.79', '61.8.0.113', '61.8.0.113', '220.181.38.148', '39.156.69.79', '202.108.22.220', '220.181.33.31', '112.80.248.64', '14.215.178.80', '180.76.76.92', '61.8.0.113', '61.8.0.113']
     else:
-        domain, ipll = multi.multi_local_dns(domain)
-    return domain, ipll
+        domain, iplist = multi.multi_local_dns(domain)
+    return domain, iplist
+
+
+def run_remote_core(domain, area):
+    ua = UserAgent()
+    headers = {"User-Agent": ua.random, }
+    r = requests.get("https://en.ipip.net/dns.php?a=dig&host=" +
+                     domain+"&area%5B%5D="+area, headers=headers)
+    iplist = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", r.text)
+    print("[+]Got domain! \n" + str(iplist))
+    return domain, iplist
 
 
 def clean(iplist):
