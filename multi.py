@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # _*_coding:utf-8_*_
 #
-from threading import Thread, Lock
+from threading import Thread
 from ping3 import ping
 import time
 import subprocess
+import re
 
 ip_dic = dict()
 
@@ -52,7 +53,7 @@ class DIG(Thread):
         if r";; connection timed out; no servers could be reached" not in str(response) and \
             response.decode() != '':
             ans = str(response).split("\\n")[1]
-            if 'github.com.' not in ans:
+            if re.search("\\d+\\.\\d+\\.\\d+\\.\\d+", ans) != None:
                 iplist.append(ans)
 
 
