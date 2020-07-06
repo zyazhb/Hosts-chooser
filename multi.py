@@ -2,11 +2,10 @@
 # _*_coding:utf-8_*_
 #
 from threading import Thread
-import subprocess
 from ping3 import ping
 import time
+import subprocess
 import re
-import sys
 
 ip_dic = dict()
 
@@ -57,6 +56,11 @@ class DIG(Thread):
         # time.sleep(1.5)
         response = proc.stdout.read()
         proc.kill()
+        if r";; connection timed out; no servers could be reached" not in str(response) and \
+            response.decode() != '':
+            ans = str(response).split("\\n")[1]
+            if re.search("\\d+\\.\\d+\\.\\d+\\.\\d+", ans) != None:
+                iplist.append(ans)
 
         if runtimePlatform == "linux":
             if ";; connection timed out; no servers could be reached" not in response.decode():
