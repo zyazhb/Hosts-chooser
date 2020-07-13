@@ -19,6 +19,7 @@ def initArguments():
 
 def main():
     parser, args = initArguments()
+<<<<<<< HEAD
     try:
         if args.target:
             domain, iplist = myutils.run_remote_core(args.target, args.area)
@@ -33,6 +34,18 @@ def main():
         print('''The domain you entered is invalid,
 The right example: python main.py -t github.com
         ''')
+=======
+    if args.target:
+        domain, ipdict = myutils.run_core(args.target, args.area)
+    elif args.r:
+        for domain in open(args.r):
+            domain, ipdict = myutils.run_core(domain, args.area)
+    else:
+        parser.print_help()
+
+    if args.clean:
+        myutils.output_dic(domain, ipdict[1])
+>>>>>>> change Threading to Async
 
 
 if __name__ == "__main__":
