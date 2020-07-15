@@ -19,16 +19,20 @@ def initArguments():
 
 def main():
     parser, args = initArguments()
-    if args.target:
-        domain, iplist = myutils.run_core(args.target, args.area)
-    elif args.r:
-        for domain in open(args.r):
-            domain, iplist = myutils.run_core(domain, args.area)
-    else:
-        parser.print_help()
-
-    if args.clean:
-        myutils.output_dic(domain, myutils.clean(iplist))
+    try:
+        if args.target:
+            domain, iplist = myutils.run_remote_core(args.target, args.area)
+        elif args.r:
+            for domain in open(args.r):
+                domain, iplist = myutils.run_core(domain, args.area)
+        else:
+            parser.print_help()
+        if args.clean:
+            myutils.output_dic(domain, myutils.clean(iplist))
+    except myutils.domainError:
+        print('''The domain you entered is invalid,
+The right example: python main.py -t github.com
+        ''')
 
 
 if __name__ == "__main__":
