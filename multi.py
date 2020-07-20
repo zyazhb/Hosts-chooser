@@ -65,10 +65,6 @@ async def dns_test(domain):
     task_speed = [asyncio.create_task(test_doamin_ip(ip))
                   for ip in set(ip_list)]
     done, pending = await asyncio.wait(task_speed)
-<<<<<<< HEAD
-
-=======
->>>>>>> change threading to async
 
 def multi_local_dns(domain):
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
