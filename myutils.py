@@ -4,7 +4,6 @@ import requests
 import re
 from prettytable import PrettyTable
 
-
 def run_core(domain, area):
     # Encrypt!
     if area == "debug":
@@ -36,14 +35,6 @@ def run_remote_core(domain, area):
         return domain, iplist
     else:
         raise domainError
-
-
-# def clean(iplist):
-#     print("[+]Start Cleaning...")
-#     ip_dic = multi.multi_ping(iplist)
-#     ip_dic = sorted(ip_dic.items(), key=lambda kv: (kv[1], kv[0]))
-#     return(ip_dic)
-
 
 def output_dic(domain, ip_dic):
     print("[+]Output:")
