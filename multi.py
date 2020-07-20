@@ -1,87 +1,75 @@
-#!/usr/bin/python
-# _*_coding:utf-8_*_
-#
-from threading import Thread
-import subprocess
-from ping3 import ping
+import asyncio
+import aiohttp
+import uvloop
+
 import time
+import subprocess
 import re
-import sys
-
-ip_dic = dict()
 
 
-class PING(Thread):
+class MyConnector(aiohttp.TCPConnector):
     def __init__(self, ip):
-        Thread.__init__(self)
-        self.ip = ip
+        self.__ip = ip
+        super().__init__()
 
-    def run(self):
-        response = ping(self.ip)
-        if response is not None:
-            delay = int(response * 1000)
-            #print("[+]ping "+str(self.ip))
-            ip_dic[self.ip] = delay
-
-
-def multi_ping(iplist):
-    T_thread = []
-    for i in iplist:
-        T_thread.append(PING(i))
-    for i in range(len(T_thread)):
-        T_thread[i].start()
-    time.sleep(5)
-    return ip_dic
+    async def _resolve_host(
+        self, host: str, port: int,
+        traces: None = None,
+    ):
+        return [{
+            'hostname': host, 'host': self.__ip, 'port': port,
+            'family': self._family, 'proto': 0, 'flags': 0,
+        }]
 
 
-iplist = []
+def now(): return time.time()
 
-class DIG(Thread):
-    def __init__(self, ip, domain):
-        Thread.__init__(self)
-        self.ip = ip
-        self.domain = domain
 
-    def run(self):
-        runtimePlatform = sys.platform
+with open("dns.txt") as f:
+    a = f.readlines()
+dns_list = [i.strip() for i in a]
 
-        # response = subprocess.check_output(
-        #     "dig @{0} {1} +short".format(self.ip, self.domain), shell=True)
-        if runtimePlatform == "linux":
-            proc = subprocess.Popen(
-                "dig @{0} {1} +short".format(self.ip, self.domain), shell=True, close_fds=True, stdout=subprocess.PIPE)
-        else:
-            proc = subprocess.Popen(
-                "nslookup {0} {1}".format(self.domain, self.ip), shell=True, stdout=subprocess.PIPE)
+ip_list = []
+time_list = {}
 
-        # time.sleep(1.5)
-        response = proc.stdout.read()
-        proc.kill()
+async def run(cmd):
+    proc = await asyncio.create_subprocess_shell(
+        cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE)
 
-        if runtimePlatform == "linux":
-            if ";; connection timed out; no servers could be reached" not in response.decode():
-                ans = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", str(response.decode()))
-                if ans != []:
-                    iplist.extend(ans)
-        else:
-            # TODO 完善输出机制
-            ans = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", str(response))
-            if ans != []:
-                iplist.extend(ans[1:])
+    stdout, stderr = await proc.communicate()
+
+    if stdout:
+        ip_find = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", stdout.decode())
+        ip_list.extend(ip_find)
+    if stderr:
+        print(f'[stderr]\n{stderr.decode()}')
+
+
+async def test_doamin_ip(ip):
+    st = now()
+    try:
+        async with aiohttp.ClientSession(connector=MyConnector(ip), timeout=aiohttp.ClientTimeout(total=10)) as client:
+            async with client.get("https://{0}".format(ip), ssl=False, timeout=10) as resp:
+                if resp.status == 200:
+                    time_list[ip] = now() - st
+    except asyncio.TimeoutError:
+        pass
+
+async def dns_test(domain):
+    task_list = [asyncio.create_task(
+        run('dig @{0} {1} +short'.format(dns, domain))) for dns in dns_list]
+    done, pending = await asyncio.wait(task_list, timeout=5)
+
+    task_speed = [asyncio.create_task(test_doamin_ip(ip))
+                  for ip in set(ip_list)]
+    done, pending = await asyncio.wait(task_speed)
 
 def multi_local_dns(domain):
-    with open("dns.txt", "r") as f_dns:
-        iplist_unsolve = [x.replace('\n', '') for x in f_dns.readlines()]
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
-        # 多线程dig
-        T_thread = []
-        for i in iplist_unsolve:
-            T_thread.append(DIG(i, domain=domain))
-        for i in range(len(T_thread)):
-            T_thread[i].start()
-        time.sleep(15)
-
-        # 去重
-        iplist_change = list(set(iplist))
-        print("[+]Got domain! \n" + str(iplist_change))
-    return domain, iplist_change
+    start = now()
+    asyncio.run(dns_test(domain))
+    print("Time: ", now() - start)
+    return domain, time_list
