@@ -18,11 +18,24 @@ def run_core(domain, area):
 def run_remote_core(domain, area):
     ua = UserAgent()
     headers = {"User-Agent": ua.random, }
-    r = requests.get("https://en.ipip.net/dns.php?a=dig&host=" +
-                     domain+"&area%5B%5D="+area, headers=headers)
-    iplist = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", r.text)
-    print("[+]Got domain! \n" + str(iplist))
-    return domain, iplist
+    status=[]
+    try:
+        r = requests.get("https://"+domain)
+        status.append(r.status_code)
+    except:
+        try:
+            r = requests.get("http://"+domain)
+            status.append(r.status_code) 
+        except:
+            pass
+    if 200 in status:
+        r = requests.get("https://en.ipip.net/dns.php?a=dig&host=" +
+        domain+"&area%5B%5D="+area, headers=headers)
+        iplist = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", r.text)
+        print("[+]Got domain! \n" + str(iplist))
+        return domain, iplist
+    else:
+        raise domainError
 
 
 def clean(iplist):
@@ -42,3 +55,7 @@ def output_dic(domain, ip_dic):
         table.add_row([domain, ip, delay])
 
     print(table)
+
+class domainError(Exception):
+    def __init__(self,err='invalid domian'):
+        Exception.__init__(self,err)
