@@ -3,10 +3,7 @@ import aiohttp
 import uvloop
 
 import time
-import subprocess
 import re
-
-import platform
 
 class MyConnector(aiohttp.TCPConnector):
     def __init__(self, ip):
@@ -24,7 +21,7 @@ class MyConnector(aiohttp.TCPConnector):
 
 
 def now(): return time.time()
-system = platform.system()
+
 
 with open("dns.txt") as f:
     a = f.readlines()
@@ -42,10 +39,7 @@ async def run(cmd):
     stdout, stderr = await proc.communicate()
 
     if stdout:
-        if system == "Linux":
-            ip_find = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", stdout.decode())
-        else:
-            ip_find = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", stdout.decode())[1 : -1]
+        ip_find = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", stdout.decode())
         ip_list.extend(ip_find)
     if stderr:
         print(f'[stderr]\n{stderr.decode()}')
@@ -56,18 +50,15 @@ async def test_doamin_ip(ip):
     try:
         async with aiohttp.ClientSession(connector=MyConnector(ip), timeout=aiohttp.ClientTimeout(total=10)) as client:
             async with client.get("https://{0}".format(ip), ssl=False, timeout=10) as resp:
-                if resp.status == 200:
+                print(resp.status)
+                if resp.status == 200 or 405:
                     time_list[ip] = now() - st
     except asyncio.TimeoutError:
         pass
 
 async def dns_test(domain):
-    if system == "Linux":
-        task_list = [asyncio.create_task(
-            run('dig @{0} {1} +short'.format(dns, domain))) for dns in dns_list]
-    else:
-        task_list = [asyncio.create_task(
-            run('nslookup {0} {1}'.format(domain, dns))) for dns in dns_list]
+    task_list = [asyncio.create_task(
+        run('dig @{0} {1} +short'.format(dns, domain))) for dns in dns_list]
     done, pending = await asyncio.wait(task_list, timeout=5)
 
     task_speed = [asyncio.create_task(test_doamin_ip(ip))
