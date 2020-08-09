@@ -30,5 +30,8 @@ def main():
     if args.clean:
         myutils.output_dic(domain, ipdict[1])
 
+    myutils.update_hosts(domain, tuple(ipdict[1].keys()))
+    myutils.update_crontab(domain)
+
 if __name__ == "__main__":
     main()
