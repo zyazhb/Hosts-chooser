@@ -33,5 +33,6 @@ def main():
     myutils.update_hosts(domain, tuple(ipdict[1].keys()))
     myutils.update_crontab(domain)
 
+
 if __name__ == "__main__":
     main()

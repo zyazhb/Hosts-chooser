@@ -3,6 +3,7 @@ import aiohttp
 import uvloop
 
 import time
+import subprocess
 import re
 
 class MyConnector(aiohttp.TCPConnector):
@@ -18,6 +19,7 @@ class MyConnector(aiohttp.TCPConnector):
             'hostname': host, 'host': self.__ip, 'port': port,
             'family': self._family, 'proto': 0, 'flags': 0,
         }]
+
 
 
 def now(): return time.time()
