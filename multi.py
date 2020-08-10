@@ -1,11 +1,14 @@
 import asyncio
 import aiohttp
-import uvloop
+
+import sys
 
 import time
 import subprocess
 import re
 
+if "linux" in sys.platform:
+    import uvloop
 class MyConnector(aiohttp.TCPConnector):
     def __init__(self, ip):
         self.__ip = ip
