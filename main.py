@@ -12,7 +12,7 @@ def initArguments():
     parser.add_argument("--area", help="Choose area in china asia europe africa oceania north_america south_america",
                         choices=["china", "asia", "europe", "africa", "oceania", "north_america", "south_america", "debug"], type=str, default="north_america", nargs='?')
     parser.add_argument(
-        "--thread", help="Run num of threads,default is 3", type=int, default=3)
+        "--update", help="Auto update hosts", action="store_true")
     args = parser.parse_args()
     return parser, args
 
@@ -29,9 +29,9 @@ def main():
 
     if args.clean:
         myutils.output_dic(domain, ipdict[1])
-
-    myutils.update_hosts(domain, tuple(ipdict[1].keys()))
-    myutils.update_crontab(domain)
+    if args.update:
+        myutils.update_hosts(domain, tuple(ipdict[1].keys()))
+        myutils.update_crontab(domain)
 
 
 if __name__ == "__main__":
