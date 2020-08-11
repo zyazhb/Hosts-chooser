@@ -4,10 +4,12 @@ import requests
 import re
 from prettytable import PrettyTable
 
-from crontab import CronTab
 import os
 import sys
 import subprocess
+
+if "win" not in sys.platform:
+    from crontab import CronTab
 
 def run_core(domain, area):
     # Encrypt!

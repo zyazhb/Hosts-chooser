@@ -2,6 +2,8 @@
 import argparse
 import myutils
 
+import sys
+
 def initArguments():
     parser = argparse.ArgumentParser(
         description="Prevent domains from dns polution.")
@@ -29,7 +31,7 @@ def main():
 
     if args.clean:
         myutils.output_dic(domain, ipdict[1])
-    if args.update:
+    if args.update and 'win' not in sys.platform:
         myutils.update_hosts(domain, tuple(ipdict[1].keys()))
         myutils.update_crontab(domain)
 
