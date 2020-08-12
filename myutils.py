@@ -8,17 +8,18 @@ import os
 import sys
 import subprocess
 
-if "win" not in sys.platform:
+global platform
+if "linux" in sys.platform:
     from crontab import CronTab
+    platform = "linux"
+elif "win" in sys.platform:
+    platform = "win"
 
 def run_core(domain, area):
     # Encrypt!
-    if area == "debug":
-        iplist = ['220.181.38.148', '39.156.69.79', '210.23.129.34', '210.23.129.34', '220.181.38.148', '39.156.69.79', '202.108.22.220', '220.181.33.31', '112.80.248.64', '14.215.178.80', '180.76.76.92', '210.23.129.34', '210.23.129.34', '39.156.69.79', '220.181.38.148', '203.12.160.35', '203.12.160.35', '39.156.69.79', '220.181.38.148',
-                  '202.108.22.220', '220.181.33.31', '112.80.248.64', '14.215.178.80', '180.76.76.92', '203.12.160.35', '203.12.160.35', '220.181.38.148', '39.156.69.79', '61.8.0.113', '61.8.0.113', '220.181.38.148', '39.156.69.79', '202.108.22.220', '220.181.33.31', '112.80.248.64', '14.215.178.80', '180.76.76.92', '61.8.0.113', '61.8.0.113']
-    else:
-        ipdict = multi.multi_local_dns(domain)
-        print("[+]Got domain! \n" + str(list(ipdict[1].keys())))
+    print("[+]platform detect: "+platform)
+    ipdict = multi.multi_local_dns(domain,platform)
+    print("[+]Got domain! \n" + str(list(ipdict[1].keys())))
     return domain, ipdict
 
 

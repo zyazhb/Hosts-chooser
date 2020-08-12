@@ -7,13 +7,6 @@ import time
 import subprocess
 import re
 
-if "linux" in sys.platform:
-    on_linux = True
-else:
-    on_linux = False
-
-if on_linux:
-    import uvloop
 class MyConnector(aiohttp.TCPConnector):
     def __init__(self, ip):
         self.__ip = ip
@@ -29,7 +22,6 @@ class MyConnector(aiohttp.TCPConnector):
         }]
 
 
-
 def now(): return time.time()
 
 
@@ -40,6 +32,7 @@ dns_list = [i.strip() for i in a]
 ip_list = []
 time_list = {}
 
+
 async def run(cmd):
     proc = await asyncio.create_subprocess_shell(
         cmd,
@@ -49,10 +42,11 @@ async def run(cmd):
     stdout, stderr = await proc.communicate()
 
     if stdout:
-        if on_linux:
+        if platform == "linux":
             ip_find = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", stdout.decode())
-        else:
-            ip_find_tmp = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", stdout.decode("gbk"))
+        elif platform == "win":
+            ip_find_tmp = re.findall(
+                "\\d+\\.\\d+\\.\\d+\\.\\d+", stdout.decode("gbk"))
             real_dns_addr = ip_find_tmp[0]
             ip_find = [i for i in ip_find_tmp if i != real_dns_addr]
         ip_list.extend(ip_find)
@@ -70,11 +64,12 @@ async def test_doamin_ip(ip):
     except asyncio.TimeoutError:
         pass
 
+
 async def dns_test(domain):
-    if on_linux:
+    if platform == "linux":
         task_list = [asyncio.create_task(
             run('dig @{0} {1} +short'.format(dns, domain))) for dns in dns_list]
-    else:
+    elif platform == "win":
         task_list = [asyncio.create_task(
             run('nslookup {0} {1}'.format(domain, dns))) for dns in dns_list]
     done, pending = await asyncio.wait(task_list, timeout=5)
@@ -83,12 +78,17 @@ async def dns_test(domain):
                   for ip in set(ip_list)]
     done, pending = await asyncio.wait(task_speed)
 
-def multi_local_dns(domain):
-    if on_linux:
-        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    else:
-        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
+def multi_local_dns(domain, platform_in):
+    global platform 
+    platform = platform_in
+    if platform == 'linux':
+        import uvloop
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    elif platform == 'win':
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    else:
+        raise "platform not support!"
     start = now()
     asyncio.run(dns_test(domain))
     print("Time: ", now() - start)
