@@ -63,7 +63,7 @@ async def test_doamin_ip(ip):
                     time_list[ip] = now() - st
     except asyncio.TimeoutError:
         pass
-
+    
 
 async def dns_test(domain):
     if platform == "linux":
@@ -90,6 +90,9 @@ def multi_local_dns(domain, platform_in):
     else:
         raise "platform not support!"
     start = now()
-    asyncio.run(dns_test(domain))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(dns_test(domain))
+    
+    # asyncio.run(dns_test(domain))
     print("Time: ", now() - start)
     return domain, time_list
