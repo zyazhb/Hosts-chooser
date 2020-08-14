@@ -1,11 +1,11 @@
 import asyncio
 import aiohttp
-import uvloop
+
+import sys
 
 import time
 import subprocess
 import re
-
 
 class MyConnector(aiohttp.TCPConnector):
     def __init__(self, ip):
@@ -32,6 +32,7 @@ dns_list = [i.strip() for i in a]
 ip_list = []
 time_list = {}
 
+
 async def run(cmd):
     proc = await asyncio.create_subprocess_shell(
         cmd,
@@ -41,10 +42,16 @@ async def run(cmd):
     stdout, stderr = await proc.communicate()
 
     if stdout:
-        ip_find = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", stdout.decode())
+        if platform == "linux":
+            ip_find = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", stdout.decode())
+        elif platform == "win":
+            ip_find_tmp = re.findall(
+                "\\d+\\.\\d+\\.\\d+\\.\\d+", stdout.decode("gbk"))
+            real_dns_addr = ip_find_tmp[0]
+            ip_find = [i for i in ip_find_tmp if i != real_dns_addr]
         ip_list.extend(ip_find)
     if stderr:
-        print(f'[stderr]\n{stderr.decode()}')
+        pass
 
 
 async def test_doamin_ip(ip):
@@ -52,24 +59,40 @@ async def test_doamin_ip(ip):
     try:
         async with aiohttp.ClientSession(connector=MyConnector(ip), timeout=aiohttp.ClientTimeout(total=10)) as client:
             async with client.get("https://{0}".format(ip), ssl=False, timeout=10) as resp:
-                if resp.status == 200:
+                if resp.status == 200 or 405:
                     time_list[ip] = now() - st
     except asyncio.TimeoutError:
         pass
+    
 
 async def dns_test(domain):
-    task_list = [asyncio.create_task(
-        run('dig @{0} {1} +short'.format(dns, domain))) for dns in dns_list]
+    if platform == "linux":
+        task_list = [asyncio.create_task(
+            run('dig @{0} {1} +short'.format(dns, domain))) for dns in dns_list]
+    elif platform == "win":
+        task_list = [asyncio.create_task(
+            run('nslookup {0} {1}'.format(domain, dns))) for dns in dns_list]
     done, pending = await asyncio.wait(task_list, timeout=5)
 
     task_speed = [asyncio.create_task(test_doamin_ip(ip))
                   for ip in set(ip_list)]
     done, pending = await asyncio.wait(task_speed)
 
-def multi_local_dns(domain):
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
+def multi_local_dns(domain, platform_in):
+    global platform 
+    platform = platform_in
+    if platform == 'linux':
+        import uvloop
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    elif platform == 'win':
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    else:
+        raise "platform not support!"
     start = now()
-    asyncio.run(dns_test(domain))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(dns_test(domain))
+    
+    # asyncio.run(dns_test(domain))
     print("Time: ", now() - start)
     return domain, time_list
