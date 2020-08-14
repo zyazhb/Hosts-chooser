@@ -2,6 +2,8 @@
 import argparse
 import myutils
 
+import sys
+
 def initArguments():
     parser = argparse.ArgumentParser(
         description="Prevent domains from dns polution.")
@@ -12,7 +14,7 @@ def initArguments():
     parser.add_argument("--area", help="Choose area in china asia europe africa oceania north_america south_america",
                         choices=["china", "asia", "europe", "africa", "oceania", "north_america", "south_america", "debug"], type=str, default="north_america", nargs='?')
     parser.add_argument(
-        "--thread", help="Run num of threads,default is 3", type=int, default=3)
+        "--update", help="Auto update hosts", action="store_true")
     args = parser.parse_args()
     return parser, args
 
@@ -29,6 +31,10 @@ def main():
 
     if args.clean:
         myutils.output_dic(domain, ipdict[1])
+    if args.update and 'win' not in sys.platform:
+        myutils.update_hosts(domain, tuple(ipdict[1].keys()))
+        myutils.update_crontab(domain)
+
 
 if __name__ == "__main__":
     main()
