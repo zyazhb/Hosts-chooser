@@ -15,8 +15,9 @@ if "linux" in sys.platform:
 elif "win" in sys.platform:
     platform = "win"
 
-def run_core(domain, area):
+def run_core(domain):
     # Encrypt!
+    print("[+]Finding ips local core...")
     print("[+]platform detect: "+platform)
     ipdict = multi.multi_local_dns(domain,platform)
     print("[+]Got domain! \n" + str(list(ipdict[1].keys())))
@@ -24,6 +25,7 @@ def run_core(domain, area):
 
 
 def run_remote_core(domain, area):
+    print("[+]Finding ips remote core...")
     ua = UserAgent()
     headers = {"User-Agent": ua.random, }
     head = ["http://www.","https://www."]

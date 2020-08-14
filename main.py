@@ -12,7 +12,7 @@ def initArguments():
     parser.add_argument(
         "--clean", help="Speed test and sort", action="store_true")
     parser.add_argument("--area", help="Choose area in china asia europe africa oceania north_america south_america",
-                        choices=["china", "asia", "europe", "africa", "oceania", "north_america", "south_america", "debug"], type=str, default="north_america", nargs='?')
+                        choices=["china", "asia", "europe", "africa", "oceania", "north_america", "south_america", "debug"], type=str, nargs='?')
     parser.add_argument(
         "--update", help="Auto update hosts", action="store_true")
     args = parser.parse_args()
@@ -22,7 +22,10 @@ def initArguments():
 def main():
     parser, args = initArguments()
     if args.target:
-        domain, ipdict = myutils.run_core(args.target, args.area)
+        if args.area:
+            domain, ipdict = myutils.run_remote_core(args.target, args.area)
+        else:
+            domain, ipdict = myutils.run_core(args.target)
     elif args.r:
         for domain in open(args.r):
             domain, ipdict = myutils.run_core(domain, args.area)
@@ -31,6 +34,7 @@ def main():
 
     if args.clean:
         myutils.output_dic(domain, ipdict[1])
+
     if args.update and 'win' not in sys.platform:
         myutils.update_hosts(domain, tuple(ipdict[1].keys()))
         myutils.update_crontab(domain)
