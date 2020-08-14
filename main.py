@@ -31,12 +31,13 @@ def main():
         for domain in open(args.r):
             domain, ipdict = myutils.run_core(domain, args.area)
     else:
+        domain = None
         parser.print_help()
 
-    if args.clean:
+    if args.clean and domain:
         myutils.output_dic(domain, ipdict[1])
 
-    if args.update and 'win' not in sys.platform:
+    if args.update and domain and ('win' not in sys.platform):
         myutils.update_hosts(domain, tuple(ipdict[1].keys()))
         myutils.update_crontab(domain)
 
