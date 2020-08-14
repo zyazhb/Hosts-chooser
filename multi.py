@@ -73,7 +73,7 @@ async def dns_test(domain):
     elif platform == "win":
         task_list = [asyncio.create_task(
             run('nslookup {0} {1}'.format(domain, dns))) for dns in dns_list]
-    done, pending = await asyncio.wait(task_list, timeout=5)
+    done, pending = await asyncio.wait(task_list, timeout=8)
 
     task_speed = [asyncio.create_task(test_doamin_ip(ip))
                   for ip in set(ip_list)]
