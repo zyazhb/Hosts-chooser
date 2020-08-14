@@ -66,14 +66,33 @@ def update_hosts(domain, new_ip):
 
     if len(new_ip) != 0:
         print("[-]Start updating hosts")
-        for ip in new_ip[::-1]:
-            cmd = [
-                'sed', '-i', rf'/^[0-9.]\+[[:space:]]\+{domain}\>/s/[^[:space:]]\+/{ip}/', '/etc/hosts']
-            try:
-                subprocess.check_call(cmd)
-                print("Add {0} {1}".format(domain, ip))
-            except:
-                print("Error: {0} {1}".format(domain, ip))
+        read_proc = subprocess.Popen(
+            ["cat", "/etc/hosts"], stdout=subprocess.PIPE)
+        grep_proc = subprocess.Popen(
+            ["grep", domain], stdin=read_proc.stdout, stdout=subprocess.PIPE)
+        output = grep_proc.communicate()[0].decode()
+
+        if output != '':
+            for ip in new_ip[::-1]:
+                cmd = [
+                    'sed', '-i', rf'/^[0-9.]\+[[:space:]]\+{domain}\>/s/[^[:space:]]\+/{ip}/', '/etc/hosts']
+                try:
+                    subprocess.check_call(cmd)
+                    print("Add {0} {1}".format(domain, ip))
+                except:
+                    print("Error: {0} {1}".format(domain, ip))
+        else:
+            op_file = open("/etc/hosts", "a+")
+
+            for ip in new_ip[::-1]:
+                write_str = ip.ljust(16, ' ') + domain
+
+                try:
+                    subprocess.check_call(["echo", write_str], stdout=op_file)
+                    print("Add {0} {1}".format(domain, ip))
+                except:
+                    print("Error: {0} {1}".format(domain, ip))
+            op_file.close()
         print("[+]Done!")
 
 
