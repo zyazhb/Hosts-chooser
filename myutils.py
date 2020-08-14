@@ -88,7 +88,7 @@ def update_crontab(program_file, domain):
 
     job = my_user_cron.new(
         command='python3 ' + program_file + ' -t ' + domain + ' --update')
-    job.setall('*/2 * * * *')  # 设置执行时间
+    job.setall('30 8 * * *')  # 设置执行时间
     job.set_comment(domain)
 
     my_user_cron.write()
