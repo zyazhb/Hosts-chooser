@@ -77,7 +77,7 @@ def update_hosts(domain, new_ip):
         print("[+]Done!")
 
 
-def update_crontab(domain):
+def update_crontab(program_file, domain):
     my_user_cron = CronTab(user=True)  # 创建当前用户的crontab
     # 删除原有的crontab文件中重复的内容
 
@@ -87,7 +87,7 @@ def update_crontab(domain):
             my_user_cron.remove(obj)
 
     job = my_user_cron.new(
-        command='python3 /program/python/Hosts-chooser-master main.py -t ' + domain + ' --clean')
+        command='python3 ' + program_file + ' -t ' + domain + ' --update')
     job.setall('*/2 * * * *')  # 设置执行时间
     job.set_comment(domain)
 
