@@ -3,6 +3,7 @@ import argparse
 import myutils
 
 import sys
+import os
 
 
 def initArguments():
@@ -15,13 +16,16 @@ def initArguments():
     parser.add_argument("--area", help="Choose area in china asia europe africa oceania north_america south_america",
                         choices=["china", "asia", "europe", "africa", "oceania", "north_america", "south_america", "debug"], type=str, nargs='?')
     parser.add_argument(
-        "--update", help="Auto update hosts", action="store_true")
+        "--update", help="update hosts", action="store_true")
+    parser.add_argument(
+        "--auto", help="Auto update hosts", action="store_true")
     args = parser.parse_args()
     return parser, args
 
 
 def main():
     parser, args = initArguments()
+    program_file = os.path.abspath(__file__)
     if args.target:
         if args.area:
             domain, ipdict = myutils.run_remote_core(args.target, args.area)
@@ -39,7 +43,9 @@ def main():
 
     if args.update and domain and ('win' not in sys.platform):
         myutils.update_hosts(domain, tuple(ipdict[1].keys()))
-        myutils.update_crontab(domain)
+
+    if args.auto and domain and ('win' not in sys.platform):
+        myutils.update_crontab(program_file, domain)
 
 
 if __name__ == "__main__":

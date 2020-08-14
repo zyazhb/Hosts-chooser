@@ -6,6 +6,7 @@ import sys
 import time
 import subprocess
 import re
+import os
 
 
 class MyConnector(aiohttp.TCPConnector):
@@ -26,7 +27,7 @@ class MyConnector(aiohttp.TCPConnector):
 def now(): return time.time()
 
 
-with open("dns.txt") as f:
+with open(os.path.split(os.path.realpath(__file__))[0] + "/dns.txt") as f:
     a = f.readlines()
 dns_list = [i.strip() for i in a]
 
