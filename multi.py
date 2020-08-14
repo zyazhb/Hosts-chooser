@@ -7,6 +7,7 @@ import time
 import subprocess
 import re
 
+
 class MyConnector(aiohttp.TCPConnector):
     def __init__(self, ip):
         self.__ip = ip
@@ -63,7 +64,7 @@ async def test_doamin_ip(ip):
                     time_list[ip] = now() - st
     except asyncio.TimeoutError:
         pass
-    
+
 
 async def dns_test(domain):
     if platform == "linux":
@@ -80,7 +81,7 @@ async def dns_test(domain):
 
 
 def multi_local_dns(domain, platform_in):
-    global platform 
+    global platform
     platform = platform_in
     if platform == 'linux':
         import uvloop
@@ -92,7 +93,7 @@ def multi_local_dns(domain, platform_in):
     start = now()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(dns_test(domain))
-    
+
     # asyncio.run(dns_test(domain))
     print("Time: ", now() - start)
     return domain, time_list
