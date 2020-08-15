@@ -84,19 +84,19 @@ def update_hosts(domain, new_ip):
         else:
             op_file = open("/etc/hosts", "a+")
 
-            for ip in new_ip[::-1]:
-                write_str = ip.ljust(16, ' ') + domain
+            write_str = new_ip[0].ljust(16, ' ') + domain
 
-                try:
-                    subprocess.check_call(["echo", write_str], stdout=op_file)
-                    print("Add {0} {1}".format(domain, ip))
-                except:
-                    print("Error: {0} {1}".format(domain, ip))
+            try:
+                subprocess.check_call(["echo", write_str], stdout=op_file)
+                print("Add {0} {1}".format(domain, new_ip[0]))
+            except:
+                print("Error: {0} {1}".format(domain, new_ip[0]))
             op_file.close()
         print("[+]Done!")
 
 
 def update_crontab(program_file, domain):
+    os.system('service cron start')
     my_user_cron = CronTab(user=True)  # 创建当前用户的crontab
     # 删除原有的crontab文件中重复的内容
 
