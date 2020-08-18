@@ -62,7 +62,8 @@ def output_dic(domain, ip_dic):
 
 def update_hosts(domain, new_ip):
     if os.getuid() != 0:
-        sys.exit("not root?")
+        print("[-] Not root?")
+        return
 
     if len(new_ip) != 0:
         print("[-]Start updating hosts")
@@ -73,25 +74,24 @@ def update_hosts(domain, new_ip):
         output = grep_proc.communicate()[0].decode()
 
         if output != '':
-            for ip in new_ip[::-1]:
-                cmd = [
-                    'sed', '-i', rf'/^[0-9.]\+[[:space:]]\+{domain}\>/s/[^[:space:]]\+/{ip}/', '/etc/hosts']
-                try:
-                    subprocess.check_call(cmd)
-                    print("Add {0} {1}".format(domain, ip))
-                except:
-                    print("Error: {0} {1}".format(domain, ip))
+            ip = new_ip[0]
+            cmd = [
+                'sed', '-i', rf'/^[0-9.]\+[[:space:]]\+{domain}\>/s/[^[:space:]]\+/{ip}/', '/etc/hosts']
+            try:
+                subprocess.check_call(cmd)
+                print("Add {0} {1}".format(domain, ip))
+            except:
+                print("Error: {0} {1}".format(domain, ip))
         else:
-            op_file = open("/etc/hosts", "a+")
-
             write_str = new_ip[0].ljust(16, ' ') + domain
+            cmd = [
+                'sed', '-i', rf'/# The following lines are desirable for IPv6 capable hosts/i\{write_str}', '/etc/hosts']
 
             try:
-                subprocess.check_call(["echo", write_str], stdout=op_file)
+                subprocess.check_call(cmd)
                 print("Add {0} {1}".format(domain, new_ip[0]))
             except:
                 print("Error: {0} {1}".format(domain, new_ip[0]))
-            op_file.close()
         print("[+]Done!")
 
 
