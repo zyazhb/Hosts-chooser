@@ -1,4 +1,5 @@
 # dns精选器
+[![img](https://badgen.net/badge/license/MIT/blue)](https://github.com/zyazhb/Hosts-chooser/blob/master/LICENSE)
 ## 基本功能
 防止dns污染自动匹配被DNS污染但是ip没有被屏蔽的网站
 ## TODO
