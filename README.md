@@ -1,5 +1,7 @@
 # dns精选器
 [![img](https://badgen.net/badge/license/MIT/blue)](https://github.com/zyazhb/Hosts-chooser/blob/master/LICENSE)
+[![img](https://badgen.net/github/last-commit/zyazhb/Hosts-chooser)](https://github.com/zyazhb/Hosts-chooser/commits/master)
+[![img](https://badgen.net/github/contributors/zyazhb/Hosts-chooser)](https://github.com/zyazhb/Hosts-chooser/graphs/contributors)
 ## 基本功能
 
 为被dns污染的站点自动匹配最佳ip地址
