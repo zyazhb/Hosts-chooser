@@ -1,3 +1,5 @@
+[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/zyazhb/Hosts-chooser)
+
 # dns精选器
 [![img](https://badgen.net/badge/license/MIT/blue)](https://github.com/zyazhb/Hosts-chooser/blob/master/LICENSE)
 [![img](https://badgen.net/github/last-commit/zyazhb/Hosts-chooser)](https://github.com/zyazhb/Hosts-chooser/commits/master)
