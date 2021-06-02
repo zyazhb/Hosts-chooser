@@ -2,6 +2,6 @@ aiohttp==3.7.4
 fake-useragent==0.1.11
 prettytable==0.7.2
 requests==2.23.0
-urllib3==1.25.9
+urllib3==1.26.5
 uvloop==0.14.0
 crontab==0.22.9
