@@ -3,6 +3,7 @@
 [![img](https://badgen.net/github/last-commit/zyazhb/Hosts-chooser)](https://github.com/zyazhb/Hosts-chooser/commits/master)
 [![img](https://badgen.net/github/contributors/zyazhb/Hosts-chooser)](https://github.com/zyazhb/Hosts-chooser/graphs/contributors)
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/zyazhb/Hosts-chooser)
+[![CodeFactor](https://www.codefactor.io/repository/github/zyazhb/hosts-chooser/badge)](https://www.codefactor.io/repository/github/zyazhb/hosts-chooser)
 
 ## 基本功能
 
