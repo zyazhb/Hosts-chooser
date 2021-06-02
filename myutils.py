@@ -96,7 +96,7 @@ def update_hosts(domain, new_ip):
 
 
 def update_crontab(program_file, domain):
-    os.system('/usr/sbin/service cron start')
+    subprocess.call('/usr/sbin/service cron start', shell=False)
     my_user_cron = CronTab(user=True)  # 创建当前用户的crontab
     # 删除原有的crontab文件中重复的内容
 
