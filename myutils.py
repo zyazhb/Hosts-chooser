@@ -39,13 +39,13 @@ def run_remote_core(domain, area):
             pass
         continue
     if 200 in status:
-        r = requests.get("https://en.ipip.net/dns.php?a=dig&host=" +
+        r = requests.get("http://en.ipip.net/dns.php?a=dig&host=" +
                          domain+"&area%5B%5D="+area, headers=headers)
         iplist = re.findall("\\d+\\.\\d+\\.\\d+\\.\\d+", r.text)
         print("[+]Got domain! \n" + str(iplist))
-        return domain, iplist
     else:
         raise domainError
+    return domain, iplist
 
 
 def output_dic(domain, ip_dic):
@@ -68,15 +68,15 @@ def update_hosts(domain, new_ip):
     if len(new_ip) != 0:
         print("[-]Start updating hosts")
         read_proc = subprocess.Popen(
-            ["cat", "/etc/hosts"], stdout=subprocess.PIPE)
+            ["/bin/cat", "/etc/hosts"], stdout=subprocess.PIPE)
         grep_proc = subprocess.Popen(
-            ["grep", domain], stdin=read_proc.stdout, stdout=subprocess.PIPE)
+            ["/bin/grep", domain], stdin=read_proc.stdout, stdout=subprocess.PIPE)
         output = grep_proc.communicate()[0].decode()
 
         if output != '':
             ip = new_ip[0]
             cmd = [
-                'sed', '-i', rf'/^[0-9.]\+[[:space:]]\+{domain}\>/s/[^[:space:]]\+/{ip}/', '/etc/hosts']
+                '/bin/sed', '-i', rf'/^[0-9.]\+[[:space:]]\+{domain}\>/s/[^[:space:]]\+/{ip}/', '/etc/hosts']
             try:
                 subprocess.check_call(cmd)
                 print("Add {0} {1}".format(domain, ip))
@@ -85,7 +85,7 @@ def update_hosts(domain, new_ip):
         else:
             write_str = new_ip[0].ljust(16, ' ') + domain
             cmd = [
-                'sed', '-i', rf'/# The following lines are desirable for IPv6 capable hosts/i\{write_str}', '/etc/hosts']
+                '/bin/sed', '-i', rf'/# The following lines are desirable for IPv6 capable hosts/i\{write_str}', '/etc/hosts']
 
             try:
                 subprocess.check_call(cmd)
@@ -96,7 +96,7 @@ def update_hosts(domain, new_ip):
 
 
 def update_crontab(program_file, domain):
-    os.system('service cron start')
+    subprocess.call('/usr/sbin/service cron start', shell=False)
     my_user_cron = CronTab(user=True)  # 创建当前用户的crontab
     # 删除原有的crontab文件中重复的内容
 
@@ -106,7 +106,7 @@ def update_crontab(program_file, domain):
             my_user_cron.remove(obj)
 
     job = my_user_cron.new(
-        command='python3 ' + program_file + ' -t ' + domain + ' --update')
+        command='/bin/python3 ' + program_file + ' -t ' + domain + ' --update')
     job.setall('30 8 * * *')  # 设置执行时间
     job.set_comment(domain)
 

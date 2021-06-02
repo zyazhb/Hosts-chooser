@@ -24,7 +24,8 @@ class MyConnector(aiohttp.TCPConnector):
         }]
 
 
-def now(): return time.time()
+def now():
+    return time.time()
 
 
 with open(os.path.split(os.path.realpath(__file__))[0] + "/dns.txt") as f:
