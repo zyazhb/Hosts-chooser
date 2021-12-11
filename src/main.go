@@ -8,7 +8,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type config struct {
+	hostsPath string
+}
+
+var Config config
+
 func main() {
+	Init()
 	res := make(map[string]time.Duration)
 	reslock := sync.RWMutex{}
 	domain := os.Args[1]
