@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -9,6 +10,7 @@ import (
 )
 
 type config struct {
+	os        int
 	hostsPath string
 }
 
@@ -16,11 +18,21 @@ var Config config
 
 func main() {
 	Init()
-	res := make(map[string]time.Duration)
+	res := []HostsItem{}
 	reslock := sync.RWMutex{}
-	domain := os.Args[1]
+	var domain string
+
+	if os.Getenv("DEBUG") == "1" {
+		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Debug("Debug on")
+	}
+	if os.Args[1] != "" {
+		domain = os.Args[1]
+	} else {
+		fmt.Scanln(&domain)
+	}
 	logrus.Infof("[+]Testing domain %s...", domain)
-	iplist := run_remote_core(domain, "asia")
+	iplist := RunRemoteCore(domain, "asia")
 	wg := sync.WaitGroup{}
 	logrus.Info("[+]Testing delay...")
 	for _, ip := range iplist {
@@ -31,7 +43,7 @@ func main() {
 			logrus.Infof("[+]Delay: %s - %s", ip0, delay)
 			if delay != time.Duration(-1) {
 				reslock.Lock()
-				res[ip0] = delay
+				res = append(res, HostsItem{HostsName: domain, Ip: ip0, Delay: int(delay)})
 				reslock.Unlock()
 			}
 			wg.Done()
@@ -42,5 +54,8 @@ func main() {
 		logrus.Error("[-]No result")
 		return
 	}
-	logrus.Infof("[+]Results:", res)
+	logrus.Infof("[+]Results: %v", res)
+	logrus.Infof("[+]Trying add hosts to file: %s", Config.hostsPath)
+	HItemsToSystemHosts(res)
+	logrus.Infof("[+]Add to hosts file done!")
 }

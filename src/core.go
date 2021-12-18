@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bufio"
+	"embed"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 	"regexp"
 	"strings"
 	"time"
@@ -10,9 +13,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func run_remote_core(domain, area string) (output []string) {
+func RunRemoteCore(domain, area string) (output []string) {
 	logrus.Info("[+]Finding ips remote core...")
-	resp, err := http.Get("http://en.ipip.net/dns.php?a=dig&host=" + domain + "&area%5B%5D=" + area)
+	resp, err := http.Get("https://en.ipip.net/dns.php?a=dig&host=" + domain + "&area%5B%5D=" + area)
 	if err != nil {
 		logrus.Error(err)
 		return
@@ -30,6 +33,50 @@ func run_remote_core(domain, area string) (output []string) {
 		output = append(output, string(ip[:]))
 	}
 	return output
+}
+
+//go:embed dns.txt
+var dnsfile embed.FS
+var cache = make(map[string]bool)
+
+func RunLocalCore(domain string) (output []string) {
+	f, err := dnsfile.Open("dns.txt")
+	if err != nil {
+		logrus.Error(err)
+	}
+	r := bufio.NewReader(f)
+	tmp, _ := r.ReadString(' ')
+	dns := strings.Split(string(tmp), "\n")
+	for _, v := range dns {
+		switch Config.os {
+		case Windows:
+			_ = exec.Command("dig", domain, v, "+short")
+		case Linux:
+			tmp := Nslookup(domain, v)
+			if _, ok := cache[tmp]; !ok {
+				cache[tmp] = true
+				output = append(output, string(tmp))
+			}
+		default:
+			logrus.Error("Unknown Platform")
+		}
+	}
+	return
+}
+
+func Nslookup(args ...string) string {
+	cmd := exec.Command("nslookup", args[0], args[1])
+	stdout, _ := cmd.StdoutPipe()
+	if err := cmd.Start(); err != nil {
+		logrus.Error("Execute failed when Start:" + err.Error())
+	}
+	out_bytes, _ := ioutil.ReadAll(stdout)
+	stdout.Close()
+	if err := cmd.Wait(); err != nil {
+		logrus.Error("Execute failed when Wait:" + err.Error())
+	}
+	tmp := regexp.MustCompile(`Address:\s*(.*)`).FindAllSubmatch(out_bytes, 2)[1][1]
+	return string(tmp)
 }
 
 func Delay(domain, ip string) time.Duration {
