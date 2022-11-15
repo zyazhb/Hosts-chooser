@@ -5,8 +5,12 @@ import (
 	"testing"
 )
 
-func TestCore(t *testing.T) {
-	run_remote_core("github.com", "china")
+func TestRemoteCore(t *testing.T) {
+	RunRemoteCore("github.com", "china")
+}
+
+func TestLocalCore(t *testing.T) {
+	RunLocalCore("github.com", "")
 }
 
 func TestDelay(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func run_remote_core(domain, area string) (output []string) {
+func RunRemoteCore(domain, area string) (output []string) {
 	logrus.Info("[+]Finding ips remote core...")
 	resp, err := http.Get("http://en.ipip.net/dns.php?a=dig&host=" + domain + "&area%5B%5D=" + area)
 	if err != nil {

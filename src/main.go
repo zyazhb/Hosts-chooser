@@ -13,7 +13,7 @@ func main() {
 	reslock := sync.RWMutex{}
 	domain := os.Args[1]
 	logrus.Infof("[+]Testing domain %s...", domain)
-	iplist := run_remote_core(domain, "asia")
+	iplist := RunLocalCore(domain, "")
 	wg := sync.WaitGroup{}
 	logrus.Info("[+]Testing delay...")
 	for _, ip := range iplist {
@@ -35,5 +35,5 @@ func main() {
 		logrus.Error("[-]No result")
 		return
 	}
-	logrus.Infof("[+]Results:", res)
+	logrus.Info("[+]Results:", res)
 }
