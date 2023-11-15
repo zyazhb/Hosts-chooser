@@ -1,4 +1,4 @@
-aiohttp==3.8.0
+aiohttp==3.8.6
 fake-useragent==0.1.11
 prettytable==0.7.2
 requests==2.23.0
