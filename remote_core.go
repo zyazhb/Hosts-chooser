@@ -42,7 +42,7 @@ func Delay(domain, ip string) time.Duration {
 	}
 	req.Host = domain
 	resp, err := Client.Do(req)
-	if strings.Contains(err.Error(), "x509: cannot validate certificate ") {
+	if err != nil && strings.Contains(err.Error(), "x509: cannot validate certificate ") {
 		return time.Since(starttime)
 	} else if err != nil {
 		logrus.Error(err)

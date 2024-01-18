@@ -10,11 +10,16 @@ import (
 
 func main() {
 	domain := flag.String("d", "", "domain")
+	debug := flag.Bool("debug", false, "debug")
 	flag.Parse()
 	if *domain == "" {
 		logrus.Error("[-]Please specify a domain")
 		flag.Usage()
 		return
+	}
+	if *debug {
+		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Debug("[+]Debug mode")
 	}
 	res := make(map[string]time.Duration)
 	reslock := sync.RWMutex{}
