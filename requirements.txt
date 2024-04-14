@@ -5,3 +5,4 @@ requests==2.23.0
 urllib3==1.26.5
 uvloop==0.14.0
 crontab==0.22.9
+idna>=3.7 # not directly required, pinned by Snyk to avoid a vulnerability
