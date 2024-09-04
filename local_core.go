@@ -36,8 +36,10 @@ func RunLocalCore(domain, area string) (output []string) {
 			var r *regexp.Regexp
 			switch runtime.GOOS {
 			case "windows":
+				// Address:  210.0.255.251
+				// Addresses: 210.0.255.251
 				cmd = exec.Command("nslookup.exe", domain, line)
-				r = regexp.MustCompile(`Addresses:\s+(\d+\.\d+\.\d+\.\d+)`)
+				r = regexp.MustCompile(`Addresse?s?:\s+(\d+\.\d+\.\d+\.\d+)`)
 			case "linux":
 				cmd = exec.Command("nslookup", domain, line)
 				r = regexp.MustCompile(`Address:\s+(\d+\.\d+\.\d+\.\d+)`)
@@ -46,10 +48,12 @@ func RunLocalCore(domain, area string) (output []string) {
 				return
 			}
 			if ip, err := cmd.CombinedOutput(); err == nil {
+				// logrus.Debug(string(ip))
 				tmpOutput := r.FindAllStringSubmatch(string(ip), -1)
+				logrus.Debug(tmpOutput)
 				for _, tmpIP := range tmpOutput {
 					if tmpIP[1] == line || strings.Contains(tmpIP[1], "#") {
-						logrus.Debug("[-]ignore", tmpIP[0], " -> ", tmpIP[1])
+						logrus.Debug("[-]ignore ", tmpIP[0], " -> ", tmpIP[1])
 						continue
 					}
 					logrus.Debug(tmpIP[0], " -> ", tmpIP[1])
