@@ -1,70 +1,104 @@
-//go:build linux
-
 package main
 
 import (
 	"bufio"
+	"context"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/schollz/progressbar/v3"
 	"github.com/sirupsen/logrus"
 )
 
 func RunLocalCore(domain, area string) (output []string) {
-	var outputLock sync.Mutex
-	var pool sync.WaitGroup
-	dnsFileName := "./dns.txt"
-	if _, err := os.Stat(dnsFileName); err != nil {
-		panic("Can't find dns.txt")
+	execPath, _ := os.Executable()
+	dnsFile := filepath.Join(filepath.Dir(execPath), "dns.txt")
+
+	dnsServers := readDNSServers(dnsFile)
+	logrus.Info("[+]Your system is ", runtime.GOOS)
+	logrus.Info("[+]Processing ", len(dnsServers), " DNS servers...")
+
+	bar := progressbar.Default(int64(len(dnsServers)), "DNS lookups")
+	results := make(chan string, len(dnsServers))
+	var wg sync.WaitGroup
+
+	for _, server := range dnsServers {
+		wg.Add(1)
+		go func(server string) {
+			defer wg.Done()
+			defer bar.Add(1)
+
+			if ip := lookupDNS(domain, server); ip != "" {
+				results <- ip
+			}
+		}(server)
 	}
-	file, err := os.Open(dnsFileName)
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	for ip := range results {
+		output = append(output, ip)
+	}
+
+	bar.Finish()
+	logrus.Info("[+]DNS lookup completed! Found ", len(output), " results")
+	return output
+}
+
+func readDNSServers(filename string) []string {
+	file, err := os.Open(filename)
 	if err != nil {
-		panic("Can't open dns.txt")
+		panic("Can't find dns.txt: " + err.Error())
 	}
 	defer file.Close()
+
+	var servers []string
 	scanner := bufio.NewScanner(file)
-	logrus.Info("[+]Your system is ", runtime.GOOS)
 	for scanner.Scan() {
-		line := scanner.Text()
-		pool.Add(1)
-		go func(domain, line string) {
-			var cmd *exec.Cmd
-			var r *regexp.Regexp
-			switch runtime.GOOS {
-			case "windows":
-				// Address:  210.0.255.251
-				// Addresses: 210.0.255.251
-				cmd = exec.Command("nslookup.exe", domain, line)
-				r = regexp.MustCompile(`Addresse?s?:\s+(\d+\.\d+\.\d+\.\d+)`)
-			case "linux":
-				cmd = exec.Command("nslookup", domain, line)
-				r = regexp.MustCompile(`Address:\s+(\d+\.\d+\.\d+\.\d+)`)
-			default:
-				logrus.Error("[-]Unsupported system")
-				return
-			}
-			if ip, err := cmd.CombinedOutput(); err == nil {
-				// logrus.Debug(string(ip))
-				tmpOutput := r.FindAllStringSubmatch(string(ip), -1)
-				logrus.Debug(tmpOutput)
-				for _, tmpIP := range tmpOutput {
-					if tmpIP[1] == line || strings.Contains(tmpIP[1], "#") {
-						logrus.Debug("[-]ignore ", tmpIP[0], " -> ", tmpIP[1])
-						continue
-					}
-					logrus.Debug(tmpIP[0], " -> ", tmpIP[1])
-					outputLock.Lock()
-					output = append(output, tmpIP[1])
-					outputLock.Unlock()
-				}
-			}
-			pool.Done()
-		}(domain, line)
+		if line := strings.TrimSpace(scanner.Text()); line != "" {
+			servers = append(servers, line)
+		}
 	}
-	pool.Wait()
-	return output
+	return servers
+}
+
+func lookupDNS(domain, server string) string {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var cmd *exec.Cmd
+	var pattern string
+
+	if runtime.GOOS == "windows" {
+		cmd = exec.CommandContext(ctx, "nslookup.exe", domain, server)
+		pattern = `Addresse?s?:\s+(\d+\.\d+\.\d+\.\d+)`
+	} else {
+		cmd = exec.CommandContext(ctx, "nslookup", domain, server)
+		pattern = `Address:\s+(\d+\.\d+\.\d+\.\d+)`
+	}
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return ""
+	}
+
+	re := regexp.MustCompile(pattern)
+	matches := re.FindAllStringSubmatch(string(output), -1)
+
+	for _, match := range matches {
+		ip := match[1]
+		if ip != server && !strings.Contains(ip, "#") {
+			return ip
+		}
+	}
+	return ""
 }
