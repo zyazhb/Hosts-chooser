@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"os"
 	"runtime"
 	"strings"
@@ -33,6 +34,37 @@ func updateHostsFile(domain, ip string) error {
 	commentPattern := fmt.Sprintf("# Added by hosts-chooser for %s", domain)
 
 	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			newLines = append(newLines, line)
+			continue
+		}
+
+		// Check for existing hosts-chooser entry with same domain
+		if strings.Contains(line, commentPattern) {
+			re := regexp.MustCompile(`^\d+\.\d+\.\d+\.\d+`)
+			if match := re.FindString(line); match != "" && match != ip {
+				// Replace IP part of existing entry while preserving formatting
+				parts := strings.SplitN(line, "\t", 3)
+				if len(parts) >= 2 {
+					newLines = append(newLines, fmt.Sprintf("%s\t%s\t%s", ip, domain, comment))
+				} else {
+					newLines = append(newLines, newEntry)
+				}
+				replaced = true
+				logrus.Info("[+]Replaced existing entry for ", domain)
+				continue
+			}
+		}
+
+		fields := strings.Fields(line)
+		if len(fields) >= 2 && fields[1] == domain {
+			// Existing entry for this domain, replace it
+			newLines = append(newLines, newEntry)
+			replaced = true
+			logrus.Info("[+]Replaced existing entry for ", domain)
+			continue
+		}
+
 		if strings.Contains(line, commentPattern) {
 			newLines = append(newLines, newEntry)
 			replaced = true
